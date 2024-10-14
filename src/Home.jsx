@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Modal from "./Modal";
 import AgregarJuego from "./AgregarJuego";
 import "./styles.css";
@@ -9,40 +10,27 @@ const Home = () => {
   const [mostrarAgregarJuego, setMostrarAgregarJuego] = useState(false);
 
   useEffect(() => {
-    // Obtener deportes del servidor
-    fetch('/api/games')
+    axios.get('../api/games')
       .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error en la solicitud');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setDeportes(data);
+        console.log('Respuesta de la API:', response.data); // Agregar registro de la respuesta
+        if (Array.isArray(response.data)) {
+          setDeportes(response.data);
         } else {
-          console.error('La respuesta de la API no es un array', data);
+          throw new Error('Formato de datos incorrecto');
         }
       })
       .catch((error) => {
-        console.error('Error al obtener los deportes', error);
+        console.error('Error al obtener los deportes:', error);
       });
   }, []);
 
   const borrarDeporte = (id) => {
-    // Hacer la solicitud DELETE al servidor
-    fetch(`/api/games/${id}`, { method: 'DELETE' })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Error en la solicitud');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setDeportes(data);
+    axios.delete(`/api/games/${id}`)
+      .then(() => {
+        setDeportes(deportes.filter(deporte => deporte.id !== id));
       })
       .catch((error) => {
-        console.error('Error al borrar el deporte', error);
+        console.error('Error al borrar el deporte:', error);
       });
   };
 
@@ -54,38 +42,34 @@ const Home = () => {
     setDeporteSeleccionado(null);
   };
 
-  const abrirAgregarJuego = () => {
-    setMostrarAgregarJuego(true);
-  };
-
-  const cerrarAgregarJuego = () => {
-    setMostrarAgregarJuego(false);
-  };
-
   const agregarJuego = (nuevoJuego) => {
-    setDeportes(nuevoJuego);
+    axios.post('/api/games', nuevoJuego)
+      .then((response) => {
+        setDeportes([...deportes, response.data]);
+      })
+      .catch((error) => {
+        console.error('Error al agregar el juego:', error);
+      });
   };
 
   return (
-    <div>
-      <button
-        style={{ position: "absolute", top: 10, right: 10 }}
-        onClick={abrirAgregarJuego}
-      >
-        Agregar Juego
-      </button>
-      <div className="deportes-container">
-        {deportes.map((deporte) => (
-          <div key={deporte.id} className="deporte-card">
-            <h3>{deporte.title}</h3>
-            <button onClick={() => abrirModal(deporte)}>Detalles</button>
-            <button onClick={() => borrarDeporte(deporte.id)}>Borrar</button>
-          </div>
-        ))}
-      </div>
-      <Modal deporte={deporteSeleccionado} onClose={cerrarModal} />
+    <div className="deportes-container">
+      {deportes.map((deporte) => (
+        <div key={deporte.id} className="deporte-card">
+          <h3>{deporte.title}</h3>
+          <p>{deporte.description}</p>
+          <p>Jugadores: {deporte.players}</p>
+          <p>Categorías: {deporte.categories}</p>
+          <button onClick={() => abrirModal(deporte)}>Ver más</button>
+          <button onClick={() => borrarDeporte(deporte.id)}>Borrar</button>
+        </div>
+      ))}
+      {deporteSeleccionado && (
+        <Modal deporte={deporteSeleccionado} onClose={cerrarModal} />
+      )}
+      <button onClick={() => setMostrarAgregarJuego(true)}>Agregar Juego</button>
       {mostrarAgregarJuego && (
-        <AgregarJuego onClose={cerrarAgregarJuego} onAgregar={agregarJuego} />
+        <AgregarJuego onClose={() => setMostrarAgregarJuego(false)} onAgregar={agregarJuego} />
       )}
     </div>
   );
