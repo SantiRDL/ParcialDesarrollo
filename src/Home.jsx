@@ -10,7 +10,7 @@ const Home = () => {
   const [mostrarAgregarJuego, setMostrarAgregarJuego] = useState(false);
 
   useEffect(() => {
-    axios.get('../api/games')
+    axios.get('http://localhost:3000/api/games')
       .then((response) => {
         console.log('Respuesta de la API:', response.data); // Agregar registro de la respuesta
         if (Array.isArray(response.data)) {
@@ -25,7 +25,7 @@ const Home = () => {
   }, []);
 
   const borrarDeporte = (id) => {
-    axios.delete(`/api/games/${id}`)
+    axios.delete(`http://localhost:3000/api/games/${id}`)
       .then(() => {
         setDeportes(deportes.filter(deporte => deporte.id !== id));
       })
@@ -43,7 +43,7 @@ const Home = () => {
   };
 
   const agregarJuego = (nuevoJuego) => {
-    axios.post('/api/games', nuevoJuego)
+    axios.post('http://localhost:3000/api/games', nuevoJuego)
       .then((response) => {
         setDeportes([...deportes, response.data]);
       })

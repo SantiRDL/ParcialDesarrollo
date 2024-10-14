@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "./Modal.css";
 
 const AgregarJuego = ({ onClose, onAgregar }) => {
@@ -7,11 +8,21 @@ const AgregarJuego = ({ onClose, onAgregar }) => {
   const [players, setPlayers] = useState("");
   const [categories, setCategories] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const nuevoJuego = { title, description, players, categories };
-    onAgregar(nuevoJuego);
-    onClose();
+
+    try {
+      const response = await axios.post('http://localhost:3000/api/games', nuevoJuego);
+      if (response.status === 200) {
+        onAgregar(response.data);
+        onClose();
+      } else {
+        console.error('Error al agregar el juego');
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
   };
 
   return (
